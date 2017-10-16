@@ -8,4 +8,30 @@ body,
 #root {
     padding: 0px;
     margin: 0px;
+    overflow: hidden;
+}
+
+.queryResult {
+    margin: 0px;
+    padding: 0px;
+    background: red;
+    font-size: 44px;
+    height: 50px;
+    transition: height 0.2s linear;
+}
+
+.queryResult.queryResult-enter {
+    height: 1px;
+}
+
+.queryResult.queryResult-enter.queryResult-enter-active {
+    height: 50px;
+}
+
+.queryResult.queryResult-leave {
+    height: 50px;
+}
+
+.queryResult.queryResult-leave.queryResult-leave-active {
+    height: 1px;
 }

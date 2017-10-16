@@ -16,8 +16,10 @@
     "dependencies": {
         "electron-is-dev": "^0.3.0",
         "electron-updater": "^2.10.1",
+        "fuzzaldrin": "^2.1.0",
         "node-sass-chokidar": "0.0.3",
         "react": "^15.6.1",
+        "react-addons-css-transition-group": "^15.6.2",
         "react-dom": "^15.6.1",
         "react-scripts": "1.0.10",
         "telegraf": "^3.14.0"

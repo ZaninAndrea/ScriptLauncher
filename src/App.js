@@ -1,20 +1,54 @@
 import React, {Component} from "react"
 import "./App.css"
+import commands from "./commands.js"
+import {score} from "fuzzaldrin"
+import ReactCSSTransitionGroup from "react-addons-css-transition-group" // ES6
 
 const electron = window.require("electron") // little trick to import electron in react
 const ipcRenderer = electron.ipcRenderer
+const remote = electron.remote
+
+const resizeWindow = height => {
+    var win = remote.getCurrentWindow()
+    let bounds = win.getBounds()
+    bounds.height = height
+    // now i have everything from BrowserWindow api...
+    win.setBounds(bounds)
+}
+
+const matchCommand = input => {
+    const results = []
+    const query = input.split(" ")[0]
+    for (let id in commands) {
+        let command = commands[id]
+        command.match = 0
+        for (let id2 in command.keys) {
+            const key = command.keys[id2]
+            const match = score(query, key)
+            command.match = command.match > match ? command.match : match
+        }
+        if (command.match > 0.01) {
+            results.push(command)
+        }
+    }
+
+    results.sort((a, b) => {
+        return a.match > b.match ? 1 : -1
+    })
+
+    return results
+}
 
 class App extends Component {
     constructor(props) {
         super(props)
-        this.handleChange = this.handleChange.bind(this)
-        this.handleKeyPress = this.handleKeyPress.bind(this)
 
         this.state = {
             updateReady: false,
             authorizationRequest: false,
             from: {},
             value: "",
+            results: [],
         }
 
         ipcRenderer.on("updateReady", (event, text) => {
@@ -23,23 +57,32 @@ class App extends Component {
         ipcRenderer.on("authorizationRequest", (event, from) => {
             this.setState({authorizationRequest: true, from})
         })
+
+        this.handleChange = this.handleChange.bind(this)
+        this.handleKeyPress = this.handleKeyPress.bind(this)
     }
 
     handleChange(event) {
-        this.setState({value: event.target.value})
+        this.setState({
+            value: event.target.value,
+            results: matchCommand(event.target.value),
+        })
     }
 
     handleKeyPress(event) {
         if (event.key === "Enter") {
-            if (this.state.value.startsWith("wolfram ")) {
-                window.open(
-                    "https://www.wolframalpha.com/input/?i=" +
-                        this.state.value.substring("wolfram ".length)
+            const results = matchCommand(this.state.value)
+
+            if (results.length === 0) {
+                alert("no command found")
+            } else {
+                results[0].handler(
+                    this.state.value.substring(
+                        this.state.value.split(" ")[0].length + 1
+                    )
                 )
-            } else if (this.state.value.startsWith("open ")) {
-                window.open(this.state.value.substring("open ".length))
             }
-            this.setState({value: ""})
+            this.setState({value: "", results: []})
         }
     }
     // render() {
@@ -63,6 +106,7 @@ class App extends Component {
     // }
 
     render() {
+        resizeWindow(50 + this.state.results.length * 50)
         return (
             <div className="App">
                 <input
@@ -79,6 +123,30 @@ class App extends Component {
                     onChange={this.handleChange}
                     onKeyPress={this.handleKeyPress}
                 />
+                <ReactCSSTransitionGroup
+                    transitionName="queryResult"
+                    transitionEnterTimeout={200}
+                    transitionLeaveTimeout={200}
+                >
+                    {this.state.results.map(result => (
+                        <div
+                            className="queryResult"
+                            key={
+                                result.keys[0] +
+                                " " +
+                                this.state.value.substring(
+                                    this.state.value.split(" ")[0].length + 1
+                                )
+                            }
+                        >
+                            {result.keys[0] +
+                                " " +
+                                this.state.value.substring(
+                                    this.state.value.split(" ")[0].length + 1
+                                )}
+                        </div>
+                    ))}
+                </ReactCSSTransitionGroup>
             </div>
         )
     }
