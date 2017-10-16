@@ -1,30 +1,47 @@
 .inputLine {
-  margin: 0px;
-  padding: 0px; }
+    margin: 0px;
+    padding: 0px;
+}
 
-body,
-.App,
-#root {
-  padding: 0px;
-  margin: 0px;
-  overflow: hidden; }
+html,
+body {
+    padding: 0px;
+    margin: 0px;
+    overflow: hidden;
+    background: transparent;
+}
+
+.App {
+    background: white;
+}
 
 .queryResult {
-  margin: 0px;
-  padding: 0px;
-  background: red;
-  font-size: 44px;
-  height: 50px;
-  transition: height 0.2s linear; }
+    margin: 0px;
+    padding: 0px;
+    font-size: 44px;
+    height: 50px;
+    background-color: white;
+    transition: height 0.2s ease-out;
+    border-bottom: 2px solid green;
+    overflow: hidden;
+}
+
+.selectedResult {
+    background-color: red;
+}
 
 .queryResult.queryResult-enter {
-  height: 1px; }
+    height: 0px;
+}
 
 .queryResult.queryResult-enter.queryResult-enter-active {
-  height: 50px; }
+    height: 50px;
+}
 
 .queryResult.queryResult-leave {
-  height: 50px; }
+    height: 50px;
+}
 
 .queryResult.queryResult-leave.queryResult-leave-active {
-  height: 1px; }
+    height: 1px;
+}

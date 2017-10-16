@@ -8,16 +8,29 @@ const electron = window.require("electron") // little trick to import electron i
 const ipcRenderer = electron.ipcRenderer
 const remote = electron.remote
 
+let resizeTimeout
+
 const resizeWindow = height => {
     var win = remote.getCurrentWindow()
     let bounds = win.getBounds()
     bounds.height = height
-    // now i have everything from BrowserWindow api...
     win.setBounds(bounds)
+    console.log(height)
 }
 
 const matchCommand = input => {
     const results = []
+
+    // special commands
+    if (input[0] === "=") {
+        results.push({
+            keys: ["="],
+            handler: () => alert(input.substring(1)),
+            preview: () => input.substring(1),
+        })
+    }
+
+    // commands
     const query = input.split(" ")[0]
     for (let id in commands) {
         let command = commands[id]
@@ -33,7 +46,7 @@ const matchCommand = input => {
     }
 
     results.sort((a, b) => {
-        return a.match > b.match ? 1 : -1
+        return a.match > b.match ? -1 : 1 // sort in order of confidence
     })
 
     return results
@@ -49,6 +62,7 @@ class App extends Component {
             from: {},
             value: "",
             results: [],
+            selected: 0,
         }
 
         ipcRenderer.on("updateReady", (event, text) => {
@@ -63,9 +77,23 @@ class App extends Component {
     }
 
     handleChange(event) {
+        const results = matchCommand(event.target.value)
+
+        // handles resizes without resizing to the same size
+        if (results.length > this.state.results.length) {
+            clearTimeout(resizeTimeout)
+            resizeWindow(52 + results.length * 50)
+        } else if (results.length < this.state.results.length) {
+            clearTimeout(resizeTimeout)
+            resizeTimeout = setTimeout(
+                () => resizeWindow(52 + results.length * 50),
+                200
+            )
+        }
+
         this.setState({
             value: event.target.value,
-            results: matchCommand(event.target.value),
+            results: results,
         })
     }
 
@@ -106,7 +134,6 @@ class App extends Component {
     // }
 
     render() {
-        resizeWindow(50 + this.state.results.length * 50)
         return (
             <div className="App">
                 <input
@@ -127,23 +154,22 @@ class App extends Component {
                     transitionName="queryResult"
                     transitionEnterTimeout={200}
                     transitionLeaveTimeout={200}
+                    className="resultsContainer"
                 >
-                    {this.state.results.map(result => (
+                    {this.state.results.map((result, id) => (
                         <div
-                            className="queryResult"
-                            key={
-                                result.keys[0] +
-                                " " +
+                            className={
+                                id === this.state.selected
+                                    ? "queryResult selectedResult"
+                                    : "queryResult"
+                            }
+                            key={result.keys[0]}
+                        >
+                            {result.preview(
                                 this.state.value.substring(
                                     this.state.value.split(" ")[0].length + 1
                                 )
-                            }
-                        >
-                            {result.keys[0] +
-                                " " +
-                                this.state.value.substring(
-                                    this.state.value.split(" ")[0].length + 1
-                                )}
+                            )}
                         </div>
                     ))}
                 </ReactCSSTransitionGroup>

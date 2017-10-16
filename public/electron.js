@@ -37,6 +37,7 @@ function createWindow() {
         alwaysOnTop: true,
         skipTaskbar: true,
         frame: false,
+        transparent: true,
         resizable: false,
     })
     mainWindow.loadURL(
@@ -73,7 +74,6 @@ app.on("ready", function() {
 
     // Register a 'CommandOrControl+X' shortcut listener.
     const ret = globalShortcut.register("Ctrl+Q", () => {
-        console.log("clicked")
         if (mainWindow.isVisible()) {
             mainWindow.hide()
         } else {
