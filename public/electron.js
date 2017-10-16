@@ -76,6 +76,7 @@ app.on("ready", function() {
     const ret = globalShortcut.register("Ctrl+Q", () => {
         if (mainWindow.isVisible()) {
             mainWindow.hide()
+            mainWindow.webContents.send("clearInput")
         } else {
             mainWindow.show()
         }
@@ -90,6 +91,10 @@ autoUpdater.on("update-downloaded", info => {
 // when receiving a quitAndInstall signal, quit and install the new version ;)
 ipcMain.on("quitAndInstall", (event, arg) => {
     autoUpdater.quitAndInstall()
+})
+
+ipcMain.on("quit", (event, arg) => {
+    app.quit()
 })
 
 app.on("will-quit", () => {

@@ -1,13 +1,9 @@
-const request = require("request")
+const rp = require("request-promise")
 
 module.exports = [
     {
-        keys: ["wr"],
-        handler: query =>
-            window.open(
-                "https://www.wolframalpha.com/input/?i=" +
-                    encodeURIComponent(query)
-            ),
-        preview: query => "wordreference " + query,
+        keys: ["word"],
+        handler: query => rp("http://setgetgo.com/randomword/get.php"),
+        asyncPreview: query => rp("http://setgetgo.com/randomword/get.php"),
     },
 ]

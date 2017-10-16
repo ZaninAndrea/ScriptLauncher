@@ -1,12 +1,15 @@
 import React, {Component} from "react"
 import "./App.css"
 import commands from "./commands.js"
+import asyncCommands from "./asyncCommands.js"
 import {score} from "fuzzaldrin"
 import ReactCSSTransitionGroup from "react-addons-css-transition-group" // ES6
+import Promise from "bluebird"
 
 const electron = window.require("electron") // little trick to import electron in react
 const ipcRenderer = electron.ipcRenderer
 const remote = electron.remote
+const {spawn} = remote.require("child_process")
 
 let resizeTimeout
 
@@ -18,39 +21,88 @@ const resizeWindow = height => {
     console.log(height)
 }
 
-const matchCommand = input => {
-    const results = []
+// gets the user input and returns the list of the autocompletes
+const matchCommand = input =>
+    new Promise((resolve, reject) => {
+        const results = [] // array of the autocomletion results
 
-    // special commands
-    if (input[0] === "=") {
-        results.push({
-            keys: ["="],
-            handler: () => alert(input.substring(1)),
-            preview: () => input.substring(1),
+        // math special command
+        if (input[0] === "=") {
+            results.push({
+                keys: ["="],
+                handler: () => alert(input.substring(1)),
+                preview: () => input.substring(1),
+            })
+        }
+
+        // shell special command
+        if (input[0] === ">") {
+            results.push({
+                keys: [">"],
+                handler: () =>
+                    spawn("start", [input.substring(1)], {
+                        shell: true,
+                        detached: true,
+                        stdio: "ignore",
+                    }),
+                preview: () => "> " + input.substring(1),
+            })
+        }
+
+        // quit app special command
+        if (input.startsWith("quit")) {
+            results.push({
+                keys: ["quit"],
+                handler: () => ipcRenderer.send("quit"),
+                preview: () => "quit",
+            })
+        }
+
+        // iterates synchronous commands and adds the to results if they are a match
+        const query = input.split(" ")[0]
+        for (let id in commands) {
+            let command = commands[id]
+            command.match = 0
+            // iterate the various keys for that command
+            for (let id2 in command.keys) {
+                const key = command.keys[id2]
+                const match = score(query, key) // match confidence score
+                command.match = command.match > match ? command.match : match
+            }
+            if (command.match > 0.01) {
+                results.push(command) // adds command to the results
+            }
+        }
+
+        // iterates asynchronous commands, checks if they are a match, waits for the previews to be generated and adds them to the list
+        let asyncQueue = []
+        for (let id in asyncCommands) {
+            let asyncCommand = asyncCommands[id]
+            asyncCommand.match = 0
+            for (let id2 in asyncCommand.keys) {
+                const key = asyncCommand.keys[id2]
+                const match = score(query, key)
+                asyncCommand.match =
+                    asyncCommand.match > match ? asyncCommand.match : match
+            }
+            if (asyncCommand.match > 0.01) {
+                asyncQueue.push(
+                    asyncCommand.asyncPreview().then(preview => {
+                        asyncCommand.preview = () => preview
+                        results.push(asyncCommand)
+                    })
+                )
+            }
+        }
+
+        Promise.all(asyncQueue).then(() => {
+            results.sort((a, b) => {
+                return a.match > b.match ? -1 : 1 // sort in order of confidence
+            })
+
+            resolve(results)
         })
-    }
-
-    // commands
-    const query = input.split(" ")[0]
-    for (let id in commands) {
-        let command = commands[id]
-        command.match = 0
-        for (let id2 in command.keys) {
-            const key = command.keys[id2]
-            const match = score(query, key)
-            command.match = command.match > match ? command.match : match
-        }
-        if (command.match > 0.01) {
-            results.push(command)
-        }
-    }
-
-    results.sort((a, b) => {
-        return a.match > b.match ? -1 : 1 // sort in order of confidence
     })
-
-    return results
-}
 
 class App extends Component {
     constructor(props) {
@@ -71,67 +123,53 @@ class App extends Component {
         ipcRenderer.on("authorizationRequest", (event, from) => {
             this.setState({authorizationRequest: true, from})
         })
+        ipcRenderer.on("clearInput", () => {
+            this.setState({value: ""})
+        })
 
         this.handleChange = this.handleChange.bind(this)
         this.handleKeyPress = this.handleKeyPress.bind(this)
     }
 
     handleChange(event) {
-        const results = matchCommand(event.target.value)
+        event.persist()
+        const value = event.target.value
+        matchCommand(value).then(results => {
+            // handles resizes without resizing to the same size
+            if (results.length > this.state.results.length) {
+                clearTimeout(resizeTimeout)
+                resizeWindow(52 + results.length * 50)
+            } else if (results.length < this.state.results.length) {
+                clearTimeout(resizeTimeout)
+                resizeTimeout = setTimeout(
+                    () => resizeWindow(52 + results.length * 50),
+                    200
+                )
+            }
 
-        // handles resizes without resizing to the same size
-        if (results.length > this.state.results.length) {
-            clearTimeout(resizeTimeout)
-            resizeWindow(52 + results.length * 50)
-        } else if (results.length < this.state.results.length) {
-            clearTimeout(resizeTimeout)
-            resizeTimeout = setTimeout(
-                () => resizeWindow(52 + results.length * 50),
-                200
-            )
-        }
-
-        this.setState({
-            value: event.target.value,
-            results: results,
+            this.setState({
+                value: value,
+                results: results,
+            })
         })
     }
 
     handleKeyPress(event) {
         if (event.key === "Enter") {
-            const results = matchCommand(this.state.value)
-
-            if (results.length === 0) {
-                alert("no command found")
-            } else {
-                results[0].handler(
-                    this.state.value.substring(
-                        this.state.value.split(" ")[0].length + 1
+            matchCommand(this.state.value).then(results => {
+                if (results.length === 0) {
+                    alert("no command found")
+                } else {
+                    results[0].handler(
+                        this.state.value.substring(
+                            this.state.value.split(" ")[0].length + 1
+                        )
                     )
-                )
-            }
-            this.setState({value: "", results: []})
+                }
+                this.setState({value: "", results: []})
+            })
         }
     }
-    // render() {
-    //     return <div>
-    //       Foobar
-    //
-    //       <button onClick={()=>ipcRenderer.send('quitAndInstall')}>{this.state.updateReady ? "click to update" : "no updates ready"}</button>
-    //       {this.state.authorizationRequest ?
-    //           <div>Telegram user {this.state.from.username} is asking authorization to run command
-    //               <button onClick={()=>{
-    //                   ipcRenderer.send("authorizeUser", this.state.from.id)
-    //                   this.setState({authorizationRequest: false})
-    //               }}>Allow</button>
-    //               <button onClick={()=>{
-    //                   ipcRenderer.send("unauthorizeUser", this.state.from.id)
-    //                   this.setState({authorizationRequest: false})
-    //               }}>Dismiss</button>
-    //           </div>
-    //           : ""}
-    //     </div>
-    // }
 
     render() {
         return (
@@ -179,3 +217,23 @@ class App extends Component {
 }
 
 export default App
+
+// render() {
+//     return <div>
+//       Foobar
+//
+//       <button onClick={()=>ipcRenderer.send('quitAndInstall')}>{this.state.updateReady ? "click to update" : "no updates ready"}</button>
+//       {this.state.authorizationRequest ?
+//           <div>Telegram user {this.state.from.username} is asking authorization to run command
+//               <button onClick={()=>{
+//                   ipcRenderer.send("authorizeUser", this.state.from.id)
+//                   this.setState({authorizationRequest: false})
+//               }}>Allow</button>
+//               <button onClick={()=>{
+//                   ipcRenderer.send("unauthorizeUser", this.state.from.id)
+//                   this.setState({authorizationRequest: false})
+//               }}>Dismiss</button>
+//           </div>
+//           : ""}
+//     </div>
+// }
