@@ -5,18 +5,41 @@ const {autoUpdater} = require("electron-updater")
 const Telegraf = require("telegraf")
 const secrets = require("./secret.js")
 const child_process = require("child_process")
+const AutoLaunch = require("auto-launch")
 const authorizedUsers = []
 const bot = new Telegraf(secrets.token)
 let mainWindow
 let telegram
+app.commandLine.appendSwitch("disable-web-security")
+if (isDev) {
+    const AutoLauncher = new AutoLaunch({name: "John"})
+    AutoLauncher.isEnabled()
+        .then(function(isEnabled) {
+            if (isEnabled) {
+                return
+            }
+            AutoLauncher.enable()
+        })
+        .catch(function(err) {
+            console.log(err)
+        })
+}
 
-// start command runs authorization request throguht the react app
+// TELEGRAM
 bot.command("start", ctx => {
     telegram = ctx.telegram
     if (authorizedUsers.indexOf(ctx.from.id) !== -1) {
         return reply("you are already authorized")
     } else {
         mainWindow.webContents.send("authorizationRequest", ctx.from)
+    }
+})
+bot.command("shutdown", ({from, reply}) => {
+    if (authorizedUsers.indexOf(ctx.from.id) !== -1) {
+        reply("Shutting down")
+        child_process.spawn("shutdown /s /t 30", {shell: true})
+    } else {
+        reply("You are not authorized, run the command /start first")
     }
 })
 bot.startPolling()
@@ -39,6 +62,9 @@ function createWindow() {
         frame: false,
         transparent: true,
         resizable: false,
+        webPreferences: {
+            webSecurity: false,
+        },
     })
     mainWindow.loadURL(
         isDev
@@ -62,14 +88,6 @@ function createWindow() {
 // when the app is loaded create a BrowserWindow and check for updates
 app.on("ready", function() {
     createWindow()
-    bot.command("shutdown", ({from, reply}) => {
-        if (authorizedUsers.indexOf(ctx.from.id) !== -1) {
-            reply("Shutting down")
-            child_process.spawn("shutdown /s /t 30", {shell: true})
-        } else {
-            reply("You are not authorized, run the command /start first")
-        }
-    })
     if (!isDev) autoUpdater.checkForUpdates()
 
     // Register a 'CommandOrControl+X' shortcut listener.

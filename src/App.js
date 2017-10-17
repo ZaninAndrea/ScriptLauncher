@@ -87,10 +87,14 @@ const matchCommand = input =>
             }
             if (asyncCommand.match > 0.01) {
                 asyncQueue.push(
-                    asyncCommand.asyncPreview().then(preview => {
-                        asyncCommand.preview = () => preview
-                        results.push(asyncCommand)
-                    })
+                    asyncCommand
+                        .asyncPreview(
+                            input.substring(input.split(" ")[0].length + 1)
+                        )
+                        .then(preview => {
+                            asyncCommand.preview = () => preview
+                            results.push(asyncCommand)
+                        })
                 )
             }
         }
@@ -124,7 +128,7 @@ class App extends Component {
             this.setState({authorizationRequest: true, from})
         })
         ipcRenderer.on("clearInput", () => {
-            this.setState({value: ""})
+            this.setState({value: "", results: []})
         })
 
         this.handleChange = this.handleChange.bind(this)
@@ -132,6 +136,9 @@ class App extends Component {
     }
 
     handleChange(event) {
+        this.setState({
+            value: event.target.value,
+        })
         event.persist()
         const value = event.target.value
         matchCommand(value).then(results => {
@@ -148,7 +155,6 @@ class App extends Component {
             }
 
             this.setState({
-                value: value,
                 results: results,
             })
         })

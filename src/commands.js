@@ -3,15 +3,6 @@ const rp = require("request-promise")
 
 module.exports = [
     {
-        keys: ["wolfram", "wm"],
-        handler: query =>
-            window.open(
-                "https://www.wolframalpha.com/input/?i=" +
-                    encodeURIComponent(query)
-            ),
-        preview: query => "wolfram " + query,
-    },
-    {
         keys: ["wr"],
         handler: query =>
             window.open(
