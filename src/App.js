@@ -21,8 +21,9 @@ const resizeWindow = height => {
     console.log(height)
 }
 
+let previewCounter = 0
 // gets the user input and returns the list of the autocompletes
-const matchCommand = input =>
+const matchCommand = (input, num) =>
     new Promise((resolve, reject) => {
         const results = [] // array of the autocomletion results
 
@@ -104,7 +105,7 @@ const matchCommand = input =>
                 return a.match > b.match ? -1 : 1 // sort in order of confidence
             })
 
-            resolve(results)
+            resolve({results: results, num: num})
         })
     })
 
@@ -141,28 +142,31 @@ class App extends Component {
         })
         event.persist()
         const value = event.target.value
-        matchCommand(value).then(results => {
-            // handles resizes without resizing to the same size
-            if (results.length > this.state.results.length) {
-                clearTimeout(resizeTimeout)
-                resizeWindow(52 + results.length * 50)
-            } else if (results.length < this.state.results.length) {
-                clearTimeout(resizeTimeout)
-                resizeTimeout = setTimeout(
-                    () => resizeWindow(52 + results.length * 50),
-                    200
-                )
-            }
+        matchCommand(value, ++previewCounter).then(({num, results}) => {
+            if (num === previewCounter) {
+                // avoid rendering results for previous inputs tthat came in later
+                // handles resizes without resizing to the same size
+                if (results.length > this.state.results.length) {
+                    clearTimeout(resizeTimeout)
+                    resizeWindow(52 + results.length * 50)
+                } else if (results.length < this.state.results.length) {
+                    clearTimeout(resizeTimeout)
+                    resizeTimeout = setTimeout(
+                        () => resizeWindow(52 + results.length * 50),
+                        200
+                    )
+                }
 
-            this.setState({
-                results: results,
-            })
+                this.setState({
+                    results: results,
+                })
+            }
         })
     }
 
     handleKeyPress(event) {
         if (event.key === "Enter") {
-            matchCommand(this.state.value).then(results => {
+            matchCommand(this.state.value).then(({results}) => {
                 if (results.length === 0) {
                     alert("no command found")
                 } else {
