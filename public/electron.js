@@ -72,7 +72,10 @@ function createWindow() {
             : `file://${path.join(__dirname, "../build/index.html")}`
     ) // load the react app
     mainWindow.on("closed", () => (mainWindow = null))
-    mainWindow.on("blur", () => mainWindow.hide())
+    mainWindow.on("blur", () => {
+        mainWindow.webContents.send("clearInput")
+        mainWindow.hide()
+    })
     const pos = mainWindow.getPosition()
     mainWindow.setPosition(pos[0], 150)
 
@@ -90,11 +93,11 @@ app.on("ready", function() {
     createWindow()
     if (!isDev) autoUpdater.checkForUpdates()
 
-    // Register a 'CommandOrControl+X' shortcut listener.
+    // Register a 'Ctrl+Q' shortcut listener.
     const ret = globalShortcut.register("Ctrl+Q", () => {
         if (mainWindow.isVisible()) {
-            mainWindow.hide()
             mainWindow.webContents.send("clearInput")
+            mainWindow.hide()
         } else {
             mainWindow.show()
         }

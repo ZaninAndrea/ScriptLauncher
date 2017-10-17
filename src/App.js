@@ -139,6 +139,7 @@ class App extends Component {
             this.setState({authorizationRequest: true, from})
         })
         ipcRenderer.on("clearInput", () => {
+            resizeWindow(52)
             this.setState({value: "", results: []})
         })
 
