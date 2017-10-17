@@ -5,6 +5,7 @@ import asyncCommands from "./asyncCommands.js"
 import {score} from "fuzzaldrin"
 import ReactCSSTransitionGroup from "react-addons-css-transition-group" // ES6
 import Promise from "bluebird"
+import mathjs from "mathjs"
 
 const electron = window.require("electron") // little trick to import electron in react
 const ipcRenderer = electron.ipcRenderer
@@ -29,10 +30,19 @@ const matchCommand = (input, num) =>
 
         // math special command
         if (input[0] === "=") {
+            let result = ""
+
+            try {
+                result = mathjs.eval(input.substring(1))
+            } catch (e) {
+                result = "could not evaluate"
+            }
+
             results.push({
                 keys: ["="],
                 handler: () => alert(input.substring(1)),
-                preview: () => input.substring(1),
+                preview: () =>
+                    result ? result.toString() : "could not evaluate",
             })
         }
 
