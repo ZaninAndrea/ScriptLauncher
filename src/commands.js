@@ -1,7 +1,10 @@
+import React from "react"
+
 const {clipboard} = window.require("electron")
 const rp = require("request-promise")
+const dataURI = require("./dataURIs.js")
 
-module.exports = [
+export default [
     {
         keys: ["wr"],
         handler: query =>
@@ -9,7 +12,16 @@ module.exports = [
                 "http://www.wordreference.com/definition/" +
                     encodeURIComponent(query)
             ),
-        preview: query => "WR " + query,
+        preview: query => (
+            <div style={{height: "100%"}}>
+                <img
+                    style={{verticalAlign: "middle"}}
+                    height="50px"
+                    src={dataURI.wr}
+                />
+                {query}
+            </div>
+        ),
     },
     {
         keys: ["wrenit"],
@@ -17,7 +29,16 @@ module.exports = [
             window.open(
                 "http://www.wordreference.com/enit/" + encodeURIComponent(query)
             ),
-        preview: query => "WRENIT " + query,
+        preview: query => (
+            <div style={{height: "100%", lineHeight: "44px"}}>
+                <img
+                    style={{verticalAlign: "middle"}}
+                    height="50px"
+                    src={dataURI.en_it}
+                />
+                {query}
+            </div>
+        ),
     },
     {
         keys: ["writen"],
@@ -25,7 +46,16 @@ module.exports = [
             window.open(
                 "http://www.wordreference.com/iten/" + encodeURIComponent(query)
             ),
-        preview: query => "WRITEN " + query,
+        preview: query => (
+            <div style={{height: "100%", lineHeight: "44px"}}>
+                <img
+                    style={{verticalAlign: "middle"}}
+                    height="50px"
+                    src={dataURI.it_en}
+                />
+                {query}
+            </div>
+        ),
     },
     {
         keys: ["goo.gl", "shorten"],

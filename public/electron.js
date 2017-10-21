@@ -10,6 +10,7 @@ const authorizedUsers = []
 const bot = new Telegraf(secrets.token)
 let mainWindow
 let telegram
+let shouldUpdate = false
 app.commandLine.appendSwitch("disable-web-security")
 if (isDev) {
     const AutoLauncher = new AutoLaunch({name: "John"})
@@ -24,34 +25,6 @@ if (isDev) {
             console.log(err)
         })
 }
-
-// TELEGRAM
-bot.command("start", ctx => {
-    telegram = ctx.telegram
-    if (authorizedUsers.indexOf(ctx.from.id) !== -1) {
-        return reply("you are already authorized")
-    } else {
-        mainWindow.webContents.send("authorizationRequest", ctx.from)
-    }
-})
-bot.command("shutdown", ({from, reply}) => {
-    if (authorizedUsers.indexOf(ctx.from.id) !== -1) {
-        reply("Shutting down")
-        child_process.spawn("shutdown /s /t 30", {shell: true})
-    } else {
-        reply("You are not authorized, run the command /start first")
-    }
-})
-bot.startPolling()
-
-ipcMain.on("authorizeUser", (event, user) => {
-    authorizedUsers.push(user)
-    telegram.sendMessage(user, "You've been authorized!")
-})
-
-ipcMain.on("unauthorizeUser", (event, user) => {
-    telegram.sendMessage(user, "Your request has been rejected")
-})
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -72,10 +45,12 @@ function createWindow() {
             : `file://${path.join(__dirname, "../build/index.html")}`
     ) // load the react app
     mainWindow.on("closed", () => (mainWindow = null))
-    mainWindow.on("blur", () => {
-        mainWindow.webContents.send("clearInput")
-        mainWindow.hide()
-    })
+    if (!isDev) {
+        mainWindow.on("blur", () => {
+            mainWindow.webContents.send("clearInput")
+            mainWindow.hide()
+        })
+    }
     const pos = mainWindow.getPosition()
     mainWindow.setPosition(pos[0], 150)
 
@@ -106,7 +81,7 @@ app.on("ready", function() {
 
 // when the update has been downloaded and is ready to be installed, notify the BrowserWindow
 autoUpdater.on("update-downloaded", info => {
-    mainWindow.webContents.send("updateReady")
+    shouldUpdate = true
 })
 
 // when receiving a quitAndInstall signal, quit and install the new version ;)
@@ -115,10 +90,42 @@ ipcMain.on("quitAndInstall", (event, arg) => {
 })
 
 ipcMain.on("quit", (event, arg) => {
-    app.quit()
+    if (shouldUpdate) {
+        autoUpdater.quitAndInstall()
+    } else {
+        app.quit()
+    }
 })
 
 app.on("will-quit", () => {
     // Unregister all shortcuts.
     globalShortcut.unregisterAll()
+})
+
+// TELEGRAM
+bot.command("start", ctx => {
+    telegram = ctx.telegram
+    if (authorizedUsers.indexOf(ctx.from.id) !== -1) {
+        return reply("you are already authorized")
+    } else {
+        mainWindow.webContents.send("authorizationRequest", ctx.from)
+    }
+})
+bot.command("shutdown", ({from, reply}) => {
+    if (authorizedUsers.indexOf(ctx.from.id) !== -1) {
+        reply("Shutting down")
+        child_process.spawn("shutdown /s /t 30", {shell: true})
+    } else {
+        reply("You are not authorized, run the command /start first")
+    }
+})
+bot.startPolling()
+
+ipcMain.on("authorizeUser", (event, user) => {
+    authorizedUsers.push(user)
+    telegram.sendMessage(user, "You've been authorized!")
+})
+
+ipcMain.on("unauthorizeUser", (event, user) => {
+    telegram.sendMessage(user, "Your request has been rejected")
 })
