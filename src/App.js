@@ -1,7 +1,7 @@
 import React, {Component} from "react"
 import "./App.css"
 import commands from "./commands.js"
-import asyncCommands from "./asyncCommands.js"
+// import asyncCommands from "./asyncCommands.js"
 import {score} from "fuzzaldrin"
 import ReactCSSTransitionGroup from "react-addons-css-transition-group" // ES6
 import Promise from "bluebird"
@@ -41,7 +41,7 @@ const matchCommand = (input, num) =>
 
             results.push({
                 keys: ["="],
-                handler: () => alert(input.substring(1)),
+                enterHandler: () => alert(input.substring(1)),
                 preview: () =>
                     result ? result.toString() : "could not evaluate",
             })
@@ -51,7 +51,7 @@ const matchCommand = (input, num) =>
         if (input[0] === ">") {
             results.push({
                 keys: [">"],
-                handler: () =>
+                enterHandler: () =>
                     spawn("start", [input.substring(1)], {
                         shell: true,
                         detached: true,
@@ -65,13 +65,14 @@ const matchCommand = (input, num) =>
         if (input.startsWith("quit")) {
             results.push({
                 keys: ["quit"],
-                handler: () => ipcRenderer.send("quit"),
+                enterHandler: () => ipcRenderer.send("quit"),
                 preview: () => "quit",
             })
         }
 
         // iterates synchronous commands and adds the to results if they are a match
         const query = input.split(" ")[0]
+        let asyncQueue = []
         for (let id in commands) {
             let command = commands[id]
             command.match = 0
@@ -82,32 +83,20 @@ const matchCommand = (input, num) =>
                 command.match = command.match > match ? command.match : match
             }
             if (command.match > 0.01) {
-                results.push(command) // adds command to the results
-            }
-        }
-
-        // iterates asynchronous commands, checks if they are a match, waits for the previews to be generated and adds them to the list
-        let asyncQueue = []
-        for (let id in asyncCommands) {
-            let asyncCommand = asyncCommands[id]
-            asyncCommand.match = 0
-            for (let id2 in asyncCommand.keys) {
-                const key = asyncCommand.keys[id2]
-                const match = score(query, key)
-                asyncCommand.match =
-                    asyncCommand.match > match ? asyncCommand.match : match
-            }
-            if (asyncCommand.match > 0.01) {
-                asyncQueue.push(
-                    asyncCommand
-                        .asyncPreview(
-                            input.substring(input.split(" ")[0].length + 1)
-                        )
-                        .then(preview => {
-                            asyncCommand.preview = () => preview
-                            results.push(asyncCommand)
-                        })
-                )
+                if (command.asyncPreview) {
+                    asyncQueue.push(
+                        command
+                            .asyncPreview(
+                                input.substring(input.split(" ")[0].length + 1)
+                            )
+                            .then(preview => {
+                                command.preview = () => preview
+                                results.push(command)
+                            })
+                    )
+                } else {
+                    results.push(command) // adds command to the results
+                }
             }
         }
 
@@ -119,7 +108,7 @@ const matchCommand = (input, num) =>
             if (input !== "") {
                 results.push({
                     keys: ["search"],
-                    handler: query =>
+                    enterHandler: query =>
                         window.open(
                             "https://duckduckgo.com/?q=" +
                                 encodeURIComponent(input)
@@ -203,7 +192,7 @@ class App extends Component {
                 if (results.length === 0) {
                     alert("no command found")
                 } else {
-                    results[0].handler(
+                    results[0].enterHandler(
                         this.state.value.substring(
                             this.state.value.split(" ")[0].length + 1
                         )
