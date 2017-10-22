@@ -18,6 +18,7 @@ export default [
         preview: query => (
             <div style={{height: "100%"}}>
                 <img
+                    alt="logo wr"
                     style={{verticalAlign: "middle"}}
                     height="50px"
                     src={dataURI.wr}
@@ -35,6 +36,7 @@ export default [
         preview: query => (
             <div style={{height: "100%", lineHeight: "44px"}}>
                 <img
+                    alt="logo wrenit"
                     style={{verticalAlign: "middle"}}
                     height="50px"
                     src={dataURI.en_it}
@@ -52,6 +54,7 @@ export default [
         preview: query => (
             <div style={{height: "100%", lineHeight: "44px"}}>
                 <img
+                    alt="logo writen"
                     style={{verticalAlign: "middle"}}
                     height="50px"
                     src={dataURI.it_en}
@@ -100,6 +103,7 @@ export default [
                         return (
                             <div style={{height: "100%"}}>
                                 <img
+                                    alt="logo wolfram"
                                     style={{verticalAlign: "middle"}}
                                     height="50px"
                                     src={dataURI.wolfram}
@@ -113,7 +117,7 @@ export default [
                         console.log(e)
                         return (
                             <div>
-                                <img src={dataURI.wolfram} />
+                                <img alt="logo wolfram" src={dataURI.wolfram} />
                                 {result}
                             </div>
                         )
