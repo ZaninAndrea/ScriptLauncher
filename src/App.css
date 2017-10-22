@@ -1,29 +1,43 @@
 .inputLine {
   margin: 0px;
-  padding: 0px; }
+  padding: 0px;
+  background: #262A34;
+  color: white;
+  border: 0px;
+  line-height: 50px;
+  box-shadow: none; }
+
+.inputLine {
+  outline: none; }
 
 html,
 body {
   padding: 0px;
   margin: 0px;
   overflow: hidden;
-  background: transparent; }
+  background: transparent;
+  color: white;
+  font-family: Segoe UI; }
 
 .App {
-  background: white; }
+  background: #262A34;
+  border: 5px solid #262A34;
+  border-radius: 5px; }
 
 .queryResult {
-  margin: 0px;
-  padding: 0px;
+  margin: 0 -5px 0 -5px;
+  padding: 0 5px 0 5px;
   font-size: 35px;
   height: 50px;
-  background-color: white;
+  background-color: #262A34;
   transition: height 0.2s ease-out;
-  border-bottom: 2px solid green;
-  overflow: hidden; }
+  border-bottom: 1px solid #22252E;
+  overflow: hidden;
+  color: #CA8E59; }
 
 .selectedResult {
-  background-color: red; }
+  background-color: #22252E;
+  color: white; }
 
 .queryResult.queryResult-enter {
   height: 0px; }

@@ -38,7 +38,7 @@ class App extends Component {
             this.setState({authorizationRequest: true, from})
         })
         ipcRenderer.on("clearInput", () => {
-            resizeWindow(52)
+            resizeWindow(62)
             this.setState({value: "", results: []})
         })
 
@@ -58,11 +58,11 @@ class App extends Component {
                 // handles resizes without resizing to the same size
                 if (results.length > this.state.results.length) {
                     clearTimeout(resizeTimeout)
-                    resizeWindow(52 + results.length * 50)
+                    resizeWindow(62 + results.length * 50)
                 } else if (results.length < this.state.results.length) {
                     clearTimeout(resizeTimeout)
                     resizeTimeout = setTimeout(
-                        () => resizeWindow(52 + results.length * 50),
+                        () => resizeWindow(62 + results.length * 50),
                         200
                     )
                 }
@@ -108,8 +108,8 @@ class App extends Component {
                 <input
                     style={{
                         width: "896px",
-                        height: "46px",
-                        fontSize: "46px",
+                        height: "50px",
+                        fontSize: "40px",
                     }}
                     autoFocus
                     className="inputLine"

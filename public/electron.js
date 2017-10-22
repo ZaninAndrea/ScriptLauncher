@@ -29,7 +29,7 @@ if (isDev) {
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 900,
-        height: 50,
+        height: 62,
         alwaysOnTop: true,
         skipTaskbar: true,
         frame: false,

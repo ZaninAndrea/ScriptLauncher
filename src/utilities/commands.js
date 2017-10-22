@@ -20,9 +20,9 @@ export default [
                 <img
                     alt="logo wr"
                     style={{verticalAlign: "middle"}}
-                    height="50px"
+                    width="50px"
                     src={dataURI.wr}
-                />
+                />&nbsp;
                 {query}
             </div>
         ),
@@ -38,9 +38,9 @@ export default [
                 <img
                     alt="logo wrenit"
                     style={{verticalAlign: "middle"}}
-                    height="50px"
+                    width="50px"
                     src={dataURI.en_it}
-                />
+                />&nbsp;
                 {query}
             </div>
         ),
@@ -56,9 +56,9 @@ export default [
                 <img
                     alt="logo writen"
                     style={{verticalAlign: "middle"}}
-                    height="50px"
+                    width="50px"
                     src={dataURI.it_en}
-                />
+                />&nbsp;
                 {query}
             </div>
         ),
@@ -105,9 +105,9 @@ export default [
                                 <img
                                     alt="logo wolfram"
                                     style={{verticalAlign: "middle"}}
-                                    height="50px"
+                                    width="50px"
                                     src={dataURI.wolfram}
-                                />
+                                />&nbsp;
                                 <span
                                     dangerouslySetInnerHTML={{__html: html}}
                                 />

@@ -43,7 +43,7 @@ const matchCommand = (input, num) =>
                         detached: true,
                         stdio: "ignore",
                     }),
-                preview: () => "> " + input.substring(1),
+                preview: () => ">  " + input.substring(1),
             })
         }
 
@@ -104,9 +104,9 @@ const matchCommand = (input, num) =>
                             <img
                                 alt="duckduckgo logo"
                                 style={{verticalAlign: "middle"}}
-                                height="50px"
+                                width="50px"
                                 src={dataURI.duckduck}
-                            />
+                            />&nbsp;
                             {input}
                         </div>
                     ),
