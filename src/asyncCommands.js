@@ -25,14 +25,26 @@ export default [
                         const node = mathjs.parse(result)
                         const tex = node.toTex()
                         const html = katex.renderToString(tex)
-                        console.log(result)
-                        console.log(node)
-                        console.log(tex)
-                        console.log(html)
-                        return <div dangerouslySetInnerHTML={{__html: html}} />
+                        return (
+                            <div style={{height: "100%"}}>
+                                <img
+                                    style={{verticalAlign: "middle"}}
+                                    height="50px"
+                                    src={dataURI.wolfram}
+                                />
+                                <span
+                                    dangerouslySetInnerHTML={{__html: html}}
+                                />
+                            </div>
+                        )
                     } catch (e) {
                         console.log(e)
-                        return result
+                        return (
+                            <div>
+                                <img src={dataURI.wolfram} />
+                                {result}
+                            </div>
+                        )
                     }
                 })
                 .catch(() => {

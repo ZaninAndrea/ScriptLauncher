@@ -246,11 +246,17 @@ class App extends Component {
                             }
                             key={result.keys[0]}
                         >
-                            {result.preview(
-                                this.state.value.substring(
-                                    this.state.value.split(" ")[0].length + 1
-                                )
-                            )}
+                            {result.preview
+                                ? result.preview(
+                                      this.state.value.substring(
+                                          this.state.value.split(" ")[0]
+                                              .length + 1
+                                      )
+                                  )
+                                : result.keys[0] +
+                                  this.state.value.substring(
+                                      this.state.value.split(" ")[0].length + 1
+                                  )}
                         </div>
                     ))}
                 </ReactCSSTransitionGroup>
