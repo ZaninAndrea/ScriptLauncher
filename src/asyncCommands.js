@@ -1,5 +1,8 @@
 import React from "react"
-const rp = require("request-promise")
+import rp from "request-promise"
+import mathjs from "mathjs"
+import katex from "katex"
+
 const wolframtoken = require("./secret.js").wolframToken
 const dataURI = require("./dataURIs.js")
 export default [
@@ -18,7 +21,19 @@ export default [
                     wolframtoken
             )
                 .then(function(result) {
-                    return result
+                    try {
+                        const node = mathjs.parse(result)
+                        const tex = node.toTex()
+                        const html = katex.renderToString(tex)
+                        console.log(result)
+                        console.log(node)
+                        console.log(tex)
+                        console.log(html)
+                        return <div dangerouslySetInnerHTML={{__html: html}} />
+                    } catch (e) {
+                        console.log(e)
+                        return result
+                    }
                 })
                 .catch(() => {
                     return "no short answer available"
