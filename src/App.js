@@ -76,18 +76,29 @@ class App extends Component {
 
     handleKeyPress(event) {
         if (event.key === "Enter") {
-            matchCommand(this.state.value).then(({results}) => {
-                if (results.length === 0) {
-                    alert("no command found")
-                } else {
-                    results[0].enterHandler(
-                        this.state.value.substring(
-                            this.state.value.split(" ")[0].length + 1
-                        )
+            if (event.ctrlKey) {
+                alert("expand")
+            } else if (this.state.results.length !== 0) {
+                this.state.results[this.state.selected].enterHandler(
+                    this.state.value.substring(
+                        this.state.value.split(" ")[0].length + 1
                     )
-                }
+                )
                 this.setState({value: "", results: []})
-            })
+            }
+        } else if (event.key === "ArrowUp") {
+            event.preventDefault()
+            this.setState(state => ({
+                selected: Math.max(state.selected - 1, 0),
+            }))
+        } else if (event.key === "ArrowDown") {
+            event.preventDefault()
+            this.setState(state => ({
+                selected: Math.min(
+                    state.selected + 1,
+                    state.results.length - 1
+                ),
+            }))
         }
     }
 
@@ -106,7 +117,7 @@ class App extends Component {
                     type="text"
                     value={this.state.value}
                     onChange={this.handleChange}
-                    onKeyPress={this.handleKeyPress}
+                    onKeyDown={this.handleKeyPress}
                 />
                 <ReactCSSTransitionGroup
                     transitionName="queryResult"
