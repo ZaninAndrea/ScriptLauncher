@@ -6,6 +6,7 @@ import {score} from "fuzzaldrin"
 import ReactCSSTransitionGroup from "react-addons-css-transition-group" // ES6
 import Promise from "bluebird"
 import mathjs from "mathjs"
+const dataURI = require("./dataURIs.js")
 
 const electron = window.require("electron") // little trick to import electron in react
 const ipcRenderer = electron.ipcRenderer
@@ -114,6 +115,27 @@ const matchCommand = (input, num) =>
             results.sort((a, b) => {
                 return a.match > b.match ? -1 : 1 // sort in order of confidence
             })
+
+            if (input !== "") {
+                results.push({
+                    keys: ["search"],
+                    handler: query =>
+                        window.open(
+                            "https://duckduckgo.com/?q=" +
+                                encodeURIComponent(input)
+                        ),
+                    preview: query => (
+                        <div style={{height: "100%"}}>
+                            <img
+                                style={{verticalAlign: "middle"}}
+                                height="50px"
+                                src={dataURI.duckduck}
+                            />
+                            {input}
+                        </div>
+                    ),
+                })
+            }
 
             resolve({results: results, num: num})
         })
