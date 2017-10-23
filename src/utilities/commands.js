@@ -7,7 +7,50 @@ const {clipboard} = window.require("electron")
 const wolframtoken = require("./secret.js").wolframToken
 const dataURI = require("./dataURIs.js")
 
+const electron = window.require("electron") // little trick to import electron in react
+const remote = electron.remote
+const Store = remote.require("electron-store")
+const factStore = new Store({name: "fact"})
+
 export default [
+    {
+        keys: ["fact", "fc"],
+        enterHandler: query => alert(factStore.get(query)),
+        preview: query => (
+            <div style={{height: "100%"}}>
+                <img
+                    alt="logo wr"
+                    style={{verticalAlign: "middle"}}
+                    width="50px"
+                    src={dataURI.wr}
+                />&nbsp;
+                {factStore.get(query.trim())}
+            </div>
+        ),
+    },
+    {
+        keys: ["factAdd", "fcAdd"],
+        enterHandler: query => {
+            try {
+                factStore.set(
+                    query.split("=")[0].trim(),
+                    query.split("=")[1].trim()
+                )
+            } catch (e) {
+                alert("wrong formatting, use = to create a new fact")
+            }
+        },
+        preview: query => (
+            <div style={{height: "100%"}}>
+                <img
+                    alt="logo wr"
+                    style={{verticalAlign: "middle"}}
+                    width="50px"
+                    src={dataURI.wr}
+                />&nbsp; add fact {query}
+            </div>
+        ),
+    },
     {
         keys: ["wr"],
         enterHandler: query =>

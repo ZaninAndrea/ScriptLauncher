@@ -1,7 +1,7 @@
 .inputLine {
   margin: 0px;
   padding: 0px;
-  background: #262A34;
+  background: #262a34;
   color: white;
   border: 0px;
   line-height: 50px;
@@ -20,8 +20,8 @@ body {
   font-family: Segoe UI; }
 
 .App {
-  background: #262A34;
-  border: 5px solid #262A34;
+  background: #262a34;
+  border: 5px solid #262a34;
   border-radius: 5px; }
 
 .queryResult {
@@ -29,14 +29,14 @@ body {
   padding: 0 5px 0 5px;
   font-size: 35px;
   height: 50px;
-  background-color: #262A34;
+  background-color: #262a34;
   transition: height 0.2s ease-out;
-  border-bottom: 1px solid #22252E;
+  border-bottom: 1px solid #22252e;
   overflow: hidden;
-  color: #CA8E59; }
+  color: #ca8e59; }
 
 .selectedResult {
-  background-color: #22252E;
+  background-color: #22252e;
   color: white; }
 
 .queryResult.queryResult-enter {
