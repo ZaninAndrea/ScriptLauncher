@@ -2,6 +2,7 @@ import React from "react"
 import rp from "request-promise"
 import mathjs from "mathjs"
 import katex from "katex"
+import Sherlock from "sherlockjs" // time parsing library
 
 const {clipboard} = window.require("electron")
 const wolframtoken = require("./secret.js").wolframToken
@@ -14,17 +15,17 @@ const factStore = new Store({name: "fact"})
 
 export default [
     {
-        keys: ["timer"],
+        keys: ["remember"],
         enterHandler: query => {
+            const sherlocked = Sherlock.parse(query)
             const start = new Date()
-            const milliSecs = Number(query) * 1000
             const interval = setInterval(() => {
                 const now = new Date()
-                if (now - start > milliSecs) {
-                    alert("done")
+                if (now >= sherlocked.startDate) {
+                    alert(sherlocked.eventTitle)
                     clearInterval(interval)
                 }
-            }, Number(query) / 10)
+            }, (start - sherlocked.startDate) / 10)
         },
         preview: query => (
             <div style={{height: "100%"}}>
@@ -33,7 +34,7 @@ export default [
                     style={{verticalAlign: "middle"}}
                     width="50px"
                     src={dataURI.wr}
-                />&nbsp; set {query} timer
+                />&nbsp; remember {query}
             </div>
         ),
     },
