@@ -14,6 +14,30 @@ const factStore = new Store({name: "fact"})
 
 export default [
     {
+        keys: ["timer"],
+        enterHandler: query => {
+            const start = new Date()
+            const milliSecs = Number(query) * 1000
+            const interval = setInterval(() => {
+                const now = new Date()
+                if (now - start > milliSecs) {
+                    alert("done")
+                    clearInterval(interval)
+                }
+            }, Number(query) / 10)
+        },
+        preview: query => (
+            <div style={{height: "100%"}}>
+                <img
+                    alt="clock"
+                    style={{verticalAlign: "middle"}}
+                    width="50px"
+                    src={dataURI.wr}
+                />&nbsp; set {query} timer
+            </div>
+        ),
+    },
+    {
         keys: ["fact", "fc"],
         enterHandler: query => alert(factStore.get(query)),
         preview: query => (
